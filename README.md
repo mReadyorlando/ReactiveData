@@ -1,26 +1,18 @@
-# 📦 ReactiveData
+# ReactiveData
 
-**ReactiveData** este un utilitar generic Swift care gestionează surse de date asincrone într-un mod reactiv, folosind framework-ul [Combine](https://developer.apple.com/documentation/combine). Este ideal pentru aplicații iOS/macOS care consumă date din rețea, baze de date sau alte surse asincrone.
+**ReactiveData** is a lightweight Swift utility that manages asynchronous data reactively using [Combine](https://developer.apple.com/documentation/combine). It’s designed for apps that need a clear data state model: `.loading`, `.ready`, `.failure`.
 
----
+## Features
 
-## ✨ Caracteristici
+- ✅ Wraps any `AnyPublisher<T, Error>`
+- 🔁 Prevents redundant reloads with in-flight tracking
+- 📡 Exposes data state via `CurrentValueSubject`
+- 🔄 Supports reload, manual injection, and reset
+- 🧪 Easy to test and integrate with MVVM / SwiftUI
 
-- ✅ Interfață reactivă peste orice `AnyPublisher<T, Error>`
-- 🔁 Evită reîncărcarea redundantă (în cazul unui fetch deja în curs)
-- ⚠️ Expune stări clare: `.loading`, `.ready`, `.failure`
-- 📦 Simplu de integrat în MVVM, SwiftUI, UIKit
-- 🧪 Ușor de testat și reutilizat
+## Installation
 
----
-
-## 📦 Instalare
-
-### Swift Package Manager
-
-Adaugă următoarea dependență în fișierul `Package.swift`:
+Use Swift Package Manager:
 
 ```swift
-dependencies: [
-    .package(url: "https://github.com/mReadyorlando/ReactiveData.git", from: "1.0.0")
-]
+.package(url: "https://github.com/mReadyorlando/ReactiveData.git", from: "1.0.0")
