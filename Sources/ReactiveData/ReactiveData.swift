@@ -1,12 +1,12 @@
 import Combine
 import Foundation
 
-public enum DataState<T> {
+public enum DataState<Value> {
     case loading
-    case ready(T)
+    case ready(Value)
     case failure(Error)
     
-    public var value: T? {
+    public var value: Value? {
         if case let .ready(t) = self {
             return t
         }
@@ -27,37 +27,37 @@ public enum DataState<T> {
         return nil
     }
     
-    func map<NewT>(transform: ((T) -> NewT) ) -> DataState<NewT> {
+    public func map<NewValue>(transform: ((Value) -> NewValue) ) -> DataState<NewValue> {
         switch self {
         case .loading:
             return .loading
-        case .ready(let t):
-            return .ready(transform(t))
+        case .ready(let value):
+            return .ready(transform(value))
         case .failure(let error):
             return .failure(error)
         }
     }
 }
 
-public class ReactiveData<T> {
+public class ReactiveData<Value> {
     
     private var cancellables = Set<AnyCancellable>()
     
-    private var publisherClosure: () -> (AnyPublisher<T, Error>?)
-    private var inFlightPublisher: AnyPublisher<T, Error>?
-    private var stateSubject = CurrentValueSubject<DataState<T>, Never>(.loading)
+    private var publisherClosure: () -> (AnyPublisher<Value, Error>?)
+    private var inFlightPublisher: AnyPublisher<Value, Error>?
+    private var stateSubject = CurrentValueSubject<DataState<Value>, Never>(.loading)
     
     private let queue = DispatchQueue(label: "ReactiveData.Queue.\(UUID().uuidString)")
     
-    public init(publisherClosure: @escaping () -> (AnyPublisher<T, Error>?)) {
+    public init(publisherClosure: @escaping () -> (AnyPublisher<Value, Error>?)) {
         self.publisherClosure = publisherClosure
     }
     
-    public var currentValue: T? {
+    public var currentValue: Value? {
         self.stateSubject.value.value
     }
     
-    public func getPublisher(silentReload: Bool = false) -> AnyPublisher<T, Error> {
+    public func getPublisher(silentReload: Bool = false) -> AnyPublisher<Value, Error> {
         queue.sync {
             if let inFlightPublisher = inFlightPublisher {
                 return inFlightPublisher
@@ -89,7 +89,7 @@ public class ReactiveData<T> {
         getPublisher(silentReload: silentReload).sink { _ in } receiveValue: { _ in }.store(in: &self.cancellables)
     }
     
-    public func getStateSubject() -> AnyPublisher<DataState<T>, Never> {
+    public func getStateSubject() -> AnyPublisher<DataState<Value>, Never> {
         switch stateSubject.value {
         case .ready(_):
             break
@@ -101,7 +101,7 @@ public class ReactiveData<T> {
         return stateSubject.eraseToAnyPublisher()
     }
     
-    public func getValuesSubject() -> AnyPublisher<T, Never> {
+    public func getValuesSubject() -> AnyPublisher<Value, Never> {
         switch stateSubject.value {
         case .ready(_):
             break
@@ -115,14 +115,14 @@ public class ReactiveData<T> {
             .eraseToAnyPublisher()
     }
     
-    public func awaitValue() -> AnyPublisher<T, Never> {
+    public func awaitValue() -> AnyPublisher<Value, Never> {
         return getStateSubject()
             .compactMap {$0.value}
             .first()
             .eraseToAnyPublisher()
     }
     
-    public func requireValue() -> AnyPublisher<T, Error> {
+    public func requireValue() -> AnyPublisher<Value, Error> {
         return getStateSubject()
             .filter { state in
                 switch state {
@@ -150,7 +150,18 @@ public class ReactiveData<T> {
         self.stateSubject.value = .loading
     }
     
-    public func pushValue(value: T) {
+    public func push(value: Value) {
         self.stateSubject.value = .ready(value)
+    }
+    
+    public func push(error: Error) {
+        self.stateSubject.value = .failure(error)
+    }
+}
+
+extension ReactiveData {
+    @available(*, deprecated, message: "Use push(value: Value) instead")
+    public func pushValue(value: Value) {
+        self.push(value: value)
     }
 }
