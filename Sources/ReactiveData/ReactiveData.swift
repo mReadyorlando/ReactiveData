@@ -49,7 +49,7 @@ public class ReactiveData<T> {
     
     private let queue = DispatchQueue(label: "ReactiveData.Queue.\(UUID().uuidString)")
     
-    init(publisherClosure: @escaping () -> (AnyPublisher<T, Error>?)) {
+    public init(publisherClosure: @escaping () -> (AnyPublisher<T, Error>?)) {
         self.publisherClosure = publisherClosure
     }
     
