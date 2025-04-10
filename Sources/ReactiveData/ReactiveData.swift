@@ -47,7 +47,7 @@ public class ReactiveData<Value> {
     private var inFlightPublisher: AnyPublisher<Value, Error>?
     private var stateSubject = CurrentValueSubject<DataState<Value>, Never>(.loading)
     
-    private let queue = DispatchQueue(label: "ReactiveData.Queue.\(UUID().uuidString)")
+//    private let queue = DispatchQueue(label: "ReactiveData.Queue.\(UUID().uuidString)")
     
     public init(publisherClosure: @escaping () -> (AnyPublisher<Value, Error>?)) {
         self.publisherClosure = publisherClosure
@@ -58,12 +58,12 @@ public class ReactiveData<Value> {
     }
     
     public func getPublisher(silentReload: Bool = false) -> AnyPublisher<Value, Error> {
-        queue.sync {
+//        queue.sync {
             if let inFlightPublisher = inFlightPublisher {
                 return inFlightPublisher
             }
             inFlightPublisher = publisherClosure()?
-                .receive(on: queue)
+//                .receive(on: queue)
                 .handleEvents { [weak self] _ in
                     if !silentReload {
                         self?.stateSubject.value = .loading
@@ -82,7 +82,7 @@ public class ReactiveData<Value> {
                 }.share()
                 .eraseToAnyPublisher()
             return inFlightPublisher!
-        }
+//        }
     }
     
     public func reload(silentReload: Bool = false) {
